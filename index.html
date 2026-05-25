@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Center Calculator</title>
+    <style>
+        :root { --primary: #1b5e20; --accent: #d32f2f; --bg: #f0f2f5; --text: #1c1e21; }
+        
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            padding: 15px; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+        }
+
+        .container { 
+            background: white; 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 20px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
+        }
+
+        h1 { 
+            text-align: center; 
+            color: var(--primary); 
+            font-size: 1.3rem; 
+            margin-top: 0;
+            margin-bottom: 20px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+        
+        .input-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            margin-bottom: 20px; 
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+        
+        label { 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            margin-bottom: 4px; 
+            color: #555; 
+        }
+
+        input { 
+            width: 100%; 
+            padding: 12px 8px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 1.1rem; 
+            text-align: center; 
+            transition: border-color 0.2s; 
+        }
+
+        input:focus { border-color: var(--primary); outline: none; background: #f9fff9; }
+
+        .results-box { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid #eee; 
+            margin-bottom: 20px; 
+        }
+
+        .line-item { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 8px; 
+            font-size: 0.95rem; 
+        }
+
+        .fee-text { color: var(--accent); font-weight: 700; }
+        
+        .payout-container { 
+            background: var(--primary); 
+            color: white; 
+            padding: 18px; 
+            border-radius: 12px; 
+            text-align: center; 
+        }
+
+        .payout-label { font-size: 0.85rem; text-transform: uppercase; opacity: 0.9; margin-bottom: 4px; }
+        .payout-amount { font-size: 2.2rem; font-weight: 800; }
+
+        .btn-reset { 
+            width: 100%; 
+            margin-top: 15px; 
+            padding: 12px; 
+            background: none; 
+            border: 2px solid #ccc; 
+            border-radius: 8px; 
+            color: #777; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+        }
+        .btn-reset:hover { background: #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Token Center Calculator</h1>
+
+    <div class="input-grid">
+        <div class="input-group">
+            <label>$1 EBT</label>
+            <input type="number" id="ebt1" placeholder="$ Value" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>$5 EBT</label>
+            <input type="number" id="ebt5" placeholder="$ Value" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>$2 Coupon</label>
+            <input type="number" id="coupon2" placeholder="$ Value" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>Gift Token</label>
+            <input type="number" id="gift" placeholder="$ Value" oninput="calculate()">
+        </div>
+    </div>
+
+    <div class="results-box">
+        <div class="line-item">
+            <span>Total Tokens Collected:</span>
+            <span id="totalCollected">$0.00</span>
+        </div>
+        <div class="line-item">
+            <span class="fee-text">4% Fee:</span>
+            <span class="fee-text" id="feeAmount">-$0.00</span>
+        </div>
+    </div>
+
+    <div class="payout-container">
+        <div class="payout-label">Pay to Vendor</div>
+        <div class="payout-amount" id="vendorPayout">$0.00</div>
+    </div>
+
+    <button class="btn-reset" onclick="reset()">Clear All Fields</button>
+</div>
+
+<script>
+    function calculate() {
+        // Values for EBT and Coupons (Subject to fee)
+        const val1 = parseFloat(document.getElementById('ebt1').value) || 0;
+        const val5 = parseFloat(document.getElementById('ebt5').value) || 0;
+        const val2 = parseFloat(document.getElementById('coupon2').value) || 0;
+        
+        // Value for Gift (Not subject to fee)
+        const giftVal = parseFloat(document.getElementById('gift').value) || 0;
+
+        // Subtotals
+        const feeableSubtotal = val1 + val5 + val2;
+        const totalCollected = feeableSubtotal + giftVal;
+        
+        // 4% Fee logic (Applied ONLY to EBT and Coupons)
+        const fee = feeableSubtotal * 0.04;
+        const payout = totalCollected - fee;
+
+        // UI Updates
+        document.getElementById('totalCollected').innerText = formatCurrency(totalCollected);
+        document.getElementById('feeAmount').innerText = '-' + formatCurrency(fee);
+        document.getElementById('vendorPayout').innerText = formatCurrency(payout);
+    }
+
+    function formatCurrency(num) {
+        return '$' + num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    function reset() {
+        const ids = ['ebt1', 'ebt5', 'coupon2', 'gift'];
+        ids.forEach(id => document.getElementById(id).value = '');
+        calculate();
+    }
+</script>
+
+</body>
+</html>
